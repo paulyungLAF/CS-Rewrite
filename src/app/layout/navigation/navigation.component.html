@@ -1,13 +1,15 @@
 <nav class="main-nav" aria-label="Primary">
-	<div class="main-nav__tabs">
-		<a routerLink="/order-list" routerLinkActive="active">Order List</a>
-		<a routerLink="/home" routerLinkActive="active">DOM</a>
-		<a routerLink="/vendor" routerLinkActive="active">Vendor</a>
-		<a routerLink="/my-items" routerLinkActive="active">My Items</a>
-		<a routerLink="/fulfiller-items" routerLinkActive="active">Fulfiller Items</a>
-		<a routerLink="/search" routerLinkActive="active">Search</a>
-		<a routerLink="/close-items" routerLinkActive="active">Close Items</a>
-	</div>
+	<nav mat-tab-nav-bar [tabPanel]="tabPanel" class="main-nav__tabs" aria-label="Primary tabs">
+		<a mat-tab-link routerLink="/order-list" routerLinkActive #orderListRla="routerLinkActive" [routerLinkActiveOptions]="{ exact: true }" [active]="orderListRla.isActive">Order List</a>
+		<a mat-tab-link routerLink="/home" routerLinkActive #homeRla="routerLinkActive" [routerLinkActiveOptions]="{ exact: true }" [active]="homeRla.isActive">DOM</a>
+		<a mat-tab-link routerLink="/vendor" routerLinkActive #vendorRla="routerLinkActive" [routerLinkActiveOptions]="{ exact: true }" [active]="vendorRla.isActive">Vendor</a>
+		<a mat-tab-link routerLink="/my-items" routerLinkActive #myItemsRla="routerLinkActive" [routerLinkActiveOptions]="{ exact: true }" [active]="myItemsRla.isActive">My Items</a>
+		<a mat-tab-link routerLink="/fulfiller-items" routerLinkActive #fulfillerRla="routerLinkActive" [routerLinkActiveOptions]="{ exact: true }" [active]="fulfillerRla.isActive">Fulfiller Items</a>
+		<a mat-tab-link routerLink="/search" routerLinkActive #searchRla="routerLinkActive" [routerLinkActiveOptions]="{ exact: true }" [active]="searchRla.isActive">Search</a>
+		<a mat-tab-link routerLink="/close-items" routerLinkActive #closeItemsRla="routerLinkActive" [routerLinkActiveOptions]="{ exact: true }" [active]="closeItemsRla.isActive">Close Items</a>
+	</nav>
+	<mat-tab-nav-panel #tabPanel></mat-tab-nav-panel>
+	<div class="main-nav__spacer" aria-hidden="true"></div>
 	<label class="keyword-input" aria-label="Keyword search">
 		<input type="text" placeholder="Enter Keyword" />
 		<span aria-hidden="true">Q</span>
