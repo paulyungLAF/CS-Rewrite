@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { ApiUrlService } from './api-url.service';
 
 export interface CloseItemRequest {
   itemNumber: string;
@@ -12,11 +13,15 @@ export interface CloseItemRequest {
   providedIn: 'root'
 })
 export class CloseItemsApiService {
-  private readonly closeEndpoint = '/api/club-supplies/close-item';
+  private readonly controller = 'club-supplies';
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly apiUrlService: ApiUrlService
+  ) {}
 
   closeItem(payload: CloseItemRequest): Observable<unknown> {
-    return this.http.post(this.closeEndpoint, payload);
+    const endpoint = this.apiUrlService.buildUrl(this.controller, 'close-item');
+    return this.http.post(endpoint, payload);
   }
 }

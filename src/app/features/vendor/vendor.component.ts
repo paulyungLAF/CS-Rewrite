@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 interface VendorLocation {
   label: string;
@@ -15,6 +15,7 @@ interface VendorAccordion {
   selector: 'app-vendor',
   standalone: true,
   templateUrl: './vendor.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./vendor.component.scss']
 })
 export class VendorComponent {

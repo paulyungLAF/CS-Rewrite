@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CloseItemsApiService } from '../../shared/services/close-items-api.service';
 
 interface CloseItemRow {
@@ -56,6 +56,7 @@ const SAMPLE_ROWS: CloseItemRow[] = [
   selector: 'app-close-items',
   standalone: true,
   templateUrl: './close-items.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./close-items.component.scss']
 })
 export class CloseItemsComponent {

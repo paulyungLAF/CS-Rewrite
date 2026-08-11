@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 interface MyItemRow {
   photoText: string;
@@ -35,6 +35,7 @@ const SAMPLE_ROWS: MyItemRow[] = [
   selector: 'app-my-items',
   standalone: true,
   templateUrl: './my-items.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./my-items.component.scss']
 })
 export class MyItemsComponent {

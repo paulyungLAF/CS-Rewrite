@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ClubContextService } from '../../shared/services/club-context.service';
 
 type RowTone = 'tone-action' | 'tone-pending' | 'tone-receiving' | '';
@@ -39,6 +39,7 @@ const BASE_ROWS: OrderRow[] = [
   selector: 'app-order-list',
   standalone: true,
   templateUrl: './order-list.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./order-list.component.scss']
 })
 export class OrderListComponent {

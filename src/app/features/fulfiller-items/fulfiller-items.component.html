@@ -1,9 +1,17 @@
 <section class="dom-view" aria-label="DOM view">
 	<div class="dom-actions">
-		<button type="button" class="export-btn">Export to Excel</button>
+		<button type="button" class="export-btn" [disabled]="isExporting" (click)="exportToExcel()">
+			{{ isExporting ? 'Exporting...' : 'Export to Excel' }}
+		</button>
 	</div>
 
-	@for (group of groups; track group.name; let i = $index) {
+	@if (isLoading) {
+		<p>Loading DOM summary...</p>
+	} @else if (groups.length === 0) {
+		<p>No DOM summary data available.</p>
+	}
+
+	@for (group of groups; track i; let i = $index) {
 		<section class="dom-group" [class.dom-group--open]="group.expanded">
 			<button
 				type="button"
@@ -33,7 +41,13 @@
 						<tbody>
 							@for (row of group.rows; track $index) {
 								<tr [class]="row.style">
-									<td><div class="photo-thumb"></div></td>
+									<td>
+										@if (row.photo) {
+											<img [src]="row.photo" alt="Item photo" class="photo-thumb" />
+										} @else {
+											<div class="photo-thumb"></div>
+										}
+									</td>
 									<td>{{ row.buyer }}</td>
 									<td>{{ row.clubName }}</td>
 									<td>{{ row.itemNumber }}</td>
@@ -41,7 +55,9 @@
 									<td>{{ row.qty }}</td>
 									<td>{{ row.total }}</td>
 									<td>{{ row.requested }}</td>
-									<td><button type="button">{{ row.status }}</button></td>
+									<td>
+										<button type="button" (click)="openStatusModal(row)">{{ row.status }}</button>
+									</td>
 								</tr>
 							}
 						</tbody>
@@ -49,5 +65,172 @@
 				</div>
 			}
 		</section>
+	}
+
+	@if (isStatusModalOpen && selectedRow) {
+		<div class="status-modal-backdrop" (click)="closeStatusModal()">
+			@if (isActionStatus(selectedRow) || isRespondedStatus(selectedRow)) {
+				<div class="status-modal status-modal--action" role="dialog" aria-modal="true" aria-label="Action item modal" (click)="$event.stopPropagation()">
+					<button class="status-modal__x" type="button" (click)="closeStatusModal()" aria-label="Close">x</button>
+					<p class="status-modal__action-title">{{ selectedRow.itemDesc }} {{ selectedRow.itemNumber }}</p>
+
+					<div class="status-modal__request-row">
+						<div class="status-modal__request-box">
+							<div class="status-modal__request-label">Requested By</div>
+							<div class="status-modal__request-value">{{ selectedRow.requester || selectedRow.buyer || 'N/A' }}</div>
+						</div>
+						<div class="status-modal__request-box">
+							<div class="status-modal__request-label">Requester’s Note</div>
+							<div class="status-modal__request-value">{{ selectedRow.requesterNote || 'N/A' }}</div>
+						</div>
+					</div>
+
+					<p class="status-modal__prompt">Select one action to proceed with this order:</p>
+
+					<div class="status-modal__action-controls">
+						<label class="status-modal__qty">Approved Qty
+							<input type="text" [(ngModel)]="requestedQtyInput" />
+						</label>
+						<label class="status-modal__radio">
+							<input type="radio" name="decision" value="reject" [(ngModel)]="selectedDecision" /> Reject
+						</label>
+						<label class="status-modal__radio">
+							<input type="radio" name="decision" value="further-action" [(ngModel)]="selectedDecision" /> Further Action Required
+						</label>
+					</div>
+
+					<div class="status-modal__section status-modal__history">
+						<p class="status-modal__section-title">Item History</p>
+						<div class="status-modal__history-grid status-modal__history-grid--head">
+							<span>Order Date</span>
+							<span>Rec’d Date</span>
+							<span>Qty Ordered</span>
+							<span>Qty Rec’d</span>
+							<span>Status</span>
+						</div>
+						<div class="status-modal__history-grid">
+							<span>{{ selectedRow.requested }}</span>
+							<span>{{ selectedRow.requested }}</span>
+							<span>{{ selectedRow.qty }}</span>
+							<span>{{ selectedRow.qty }}</span>
+							<span>Pending PO</span>
+						</div>
+					</div>
+
+					<div class="status-modal__section status-modal__history">
+						<p class="status-modal__section-title">Note History</p>
+						<div class="status-modal__history-grid status-modal__history-grid--head status-modal__history-grid--note">
+							<span>Date</span>
+							<span>Created By</span>
+							<span>Note</span>
+						</div>
+						<div class="status-modal__history-grid status-modal__history-grid--note">
+							<span>{{ selectedRow.requested }}</span>
+							<span>Approver</span>
+							<span>{{ selectedRow.requesterNote || 'N/A' }}</span>
+						</div>
+					</div>
+
+					<div class="status-modal__section status-modal__notes-block">
+						<textarea
+							rows="3"
+							maxlength="250"
+							[(ngModel)]="reviewerNote"
+							placeholder="Notes"></textarea>
+						<div class="status-modal__note-count">{{ noteLength() }}/250</div>
+					</div>
+
+					<label class="status-modal__send-back">
+						<input type="checkbox" [(ngModel)]="sendBackToApprover" />
+						<span>Send action back to approver</span>
+					</label>
+
+					<div class="status-modal__actions status-modal__actions--action">
+						<button type="button" class="btn-close" (click)="closeStatusModal()">Close</button>
+						<button type="button" class="btn-save" (click)="closeStatusModal()">Save Changes</button>
+					</div>
+				</div>
+			} @else if (isNewStatus(selectedRow)) {
+				<div class="status-modal status-modal--new" role="dialog" aria-modal="true" aria-label="New item action" (click)="$event.stopPropagation()">
+					<button class="status-modal__x" type="button" (click)="closeStatusModal()" aria-label="Close">x</button>
+					<p class="status-modal__prompt">Select one action to proceed with this order</p>
+					<p class="status-modal__title">{{ selectedRow.itemDesc }},{{ selectedRow.itemNumber }}</p>
+					<p class="status-modal__meta"><strong>Requested By :</strong> {{ selectedRow.requester || selectedRow.buyer || 'N/A' }}</p>
+					<p class="status-modal__meta"><strong>Requester's Note :</strong> {{ selectedRow.requesterNote || 'N/A' }}</p>
+
+					<div class="status-modal__section">
+						<label class="status-modal__qty">Requested Qty
+							<input type="text" [(ngModel)]="requestedQtyInput" />
+						</label>
+						<label class="status-modal__radio">
+							<input type="radio" name="decision" value="approve" [(ngModel)]="selectedDecision" /> Approve
+						</label>
+						<label class="status-modal__radio">
+							<input type="radio" name="decision" value="reject" [(ngModel)]="selectedDecision" /> Reject
+						</label>
+						<label class="status-modal__radio">
+							<input type="radio" name="decision" value="further-action" [(ngModel)]="selectedDecision" /> Further Action Required
+						</label>
+					</div>
+
+					<div class="status-modal__section status-modal__history">
+						<p class="status-modal__section-title">Item history:</p>
+						<div class="status-modal__history-grid status-modal__history-grid--head">
+							<span>Order Date</span>
+							<span>Received Date</span>
+							<span>Qty Ordered</span>
+							<span>Qty Received</span>
+							<span>Status</span>
+						</div>
+						<div class="status-modal__history-grid">
+							<span>{{ selectedRow.requested }}</span>
+							<span>N/A</span>
+							<span>{{ selectedRow.qty }}</span>
+							<span>0</span>
+							<span>{{ selectedRow.status }}</span>
+						</div>
+					</div>
+
+					<div class="status-modal__section status-modal__history">
+						<p class="status-modal__section-title">Note history:</p>
+						<div class="status-modal__history-grid status-modal__history-grid--head status-modal__history-grid--note">
+							<span>Date</span>
+							<span>Created By</span>
+							<span>Note</span>
+						</div>
+						<div class="status-modal__history-grid status-modal__history-grid--note">
+							<span>{{ selectedRow.requested }}</span>
+							<span>{{ selectedRow.requester || selectedRow.buyer || 'N/A' }}</span>
+							<span>{{ selectedRow.requesterNote || 'N/A' }}</span>
+						</div>
+					</div>
+
+					<div class="status-modal__section">
+						<p class="status-modal__section-title">Notes</p>
+						<textarea
+							rows="4"
+							maxlength="250"
+							[(ngModel)]="reviewerNote"
+							placeholder="Please type in some notes (up to 250 characters) for the requestor if needed."></textarea>
+					</div>
+
+					<div class="status-modal__actions status-modal__actions--new">
+						<button type="button" class="btn-close" (click)="closeStatusModal()">Close</button>
+						<button type="button" class="btn-save" (click)="closeStatusModal()">Save changes</button>
+					</div>
+				</div>
+			} @else {
+				<div class="status-modal" role="dialog" aria-modal="true" aria-label="Line Item Status" (click)="$event.stopPropagation()">
+					<h3>Status Action</h3>
+					<p><strong>Status:</strong> {{ selectedRow.status }}</p>
+					<p><strong>Buyer:</strong> {{ selectedRow.buyer }}</p>
+					<p><strong>Item Number:</strong> {{ selectedRow.itemNumber }}</p>
+					<p><strong>Item Description:</strong> {{ selectedRow.itemDesc }}</p>
+					<div class="status-modal__actions">
+						<button type="button" (click)="closeStatusModal()">Close</button>
+					</div>
+				</div>
+			}
+		</div>
 	}
 </section>
