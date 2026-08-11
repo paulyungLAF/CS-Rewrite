@@ -1,0 +1,22 @@
+@use "./theme/variables";
+@use "./theme/responsive";
+
+html {
+	font-size: 62.5%;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	font-family: "Segoe UI", Arial, sans-serif;
+	font-size: 1.6rem;
+	background: #ffffff;
+	color: #2f3337;
+}
+
+.table-wrapper {
+	overflow-x: auto;
+}

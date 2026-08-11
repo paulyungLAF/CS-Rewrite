@@ -1,0 +1,55 @@
+<section class="my-items" aria-label="My Items accordion view">
+	<div class="bulk-approval">
+		<span>Bulk Approval</span>
+		<label class="switch" aria-label="Bulk Approval toggle">
+			<input type="checkbox" [checked]="bulkApproval" (change)="bulkApproval = !bulkApproval" />
+			<span class="slider"></span>
+		</label>
+	</div>
+
+	@for (club of clubs; track club.club + '-' + $index; let i = $index) {
+		<section class="club-accordion" [class.club-accordion--open]="club.expanded">
+			<button
+				type="button"
+				class="club-accordion__header"
+				[attr.aria-expanded]="club.expanded"
+				(click)="toggleClub(i)">
+				<h2>{{ club.club }} ({{ club.count }})</h2>
+				<span class="chevron">{{ club.expanded ? '^' : 'v' }}</span>
+			</button>
+
+			@if (club.expanded) {
+				<div class="table-wrapper">
+					<table class="my-items-table">
+						<thead>
+							<tr>
+								<th>Photo</th>
+								<th>Buyer</th>
+								<th>Item Number</th>
+								<th>Item Desc</th>
+								<th>Qty</th>
+								<th>Requested</th>
+								<th>Total</th>
+								<th>Status</th>
+							</tr>
+						</thead>
+						<tbody>
+							@for (row of club.rows; track $index) {
+								<tr>
+									<td><div class="photo-cell">{{ row.photoText }}</div></td>
+									<td>{{ row.buyer }}</td>
+									<td>{{ row.itemNumber }}</td>
+									<td>{{ row.itemDesc }}</td>
+									<td>{{ row.qty }}</td>
+									<td>{{ row.requested }}</td>
+									<td>{{ row.total }}</td>
+									<td><button type="button" class="action-btn">{{ row.status }}</button></td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			}
+		</section>
+	}
+</section>

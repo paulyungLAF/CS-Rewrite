@@ -1,0 +1,62 @@
+<section class="close-items" aria-label="Close Items accordion view">
+  @for (club of clubs; track club.club + '-' + $index; let i = $index) {
+    <section class="club-accordion" [class.club-accordion--open]="club.expanded">
+      <button
+        type="button"
+        class="club-accordion__header"
+        [attr.aria-expanded]="club.expanded"
+        (click)="toggleClub(i)">
+        <h2>{{ club.club }} ({{ club.count }})</h2>
+        <span class="chevron">{{ club.expanded ? '^' : 'v' }}</span>
+      </button>
+
+      @if (club.expanded) {
+        <div class="table-block">
+          <p class="record-count">Total Records: {{ club.rows.length }}</p>
+          <div class="table-wrapper">
+            <table class="close-items-table">
+              <thead>
+                <tr>
+                  <th>Pic</th>
+                  <th>Buyer</th>
+                  <th>Item Desc</th>
+                  <th>Item Number</th>
+                  <th>Club ID</th>
+                  <th>Quantity</th>
+                  <th>Qty Rec'd</th>
+                  <th>Requested</th>
+                  <th>Ordered</th>
+                  <th>Received</th>
+                  <th>PO #</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of club.rows; track row.itemNumber + '-' + $index) {
+                  <tr>
+                    <td><div class="photo-cell">{{ row.pic }}</div></td>
+                    <td>{{ row.buyer }}</td>
+                    <td><a href="#">{{ row.itemDesc }}</a></td>
+                    <td>{{ row.itemNumber }}</td>
+                    <td>{{ row.clubId }}</td>
+                    <td>{{ row.quantity }}</td>
+                    <td>{{ row.qtyReceived }}</td>
+                    <td>{{ row.requested }}</td>
+                    <td>{{ row.ordered }}</td>
+                    <td>{{ row.received }}</td>
+                    <td>{{ row.poNumber }}</td>
+                    <td>
+                      <button type="button" class="close-btn" (click)="closeItem(row); $event.stopPropagation()" [disabled]="row.closing">
+                        {{ row.closing ? 'Closing...' : 'Close' }}
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+    </section>
+  }
+</section>

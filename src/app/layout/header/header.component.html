@@ -1,0 +1,15 @@
+<header class="app-header">
+	<div class="brand">
+		<div class="brand-mark" aria-hidden="true">Y</div>
+		<div class="brand-title-row">
+			<h1>EXEC CLUB SUPPLIES</h1>
+			<span>/</span>
+			<select [value]="clubContext.selectedClub" (change)="onClubChange($event)" aria-label="Select club">
+				@for (club of clubContext.clubs; track club) {
+					<option [value]="club">{{ club }}</option>
+				}
+			</select>
+		</div>
+	</div>
+	<p class="user-greeting">Hi! Josephine Lo</p>
+</header>

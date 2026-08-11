@@ -1,0 +1,63 @@
+.app-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 18px 24px;
+	background: #ffffff;
+	border-bottom: 1px solid #e4e6eb;
+}
+
+.brand {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.brand-title-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.brand-mark {
+	width: 38px;
+	height: 38px;
+	border-radius: 4px;
+	background: #c9262c;
+	color: #ffffff;
+	display: grid;
+	place-items: center;
+	font-weight: 700;
+	font-size: 1rem;
+}
+
+.brand h1 {
+	margin: 0;
+	font-size: 2.2rem;
+	line-height: 1;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+	color: #55585d;
+}
+
+.brand-title-row span {
+	font-size: 2rem;
+	color: #666b72;
+}
+
+.brand-title-row select {
+	border: 0;
+	border-bottom: 1px solid #cfd3da;
+	background: transparent;
+	font-size: 2rem;
+	font-weight: 600;
+	color: #3a3f46;
+	padding: 0 2px;
+	outline: none;
+}
+
+.user-greeting {
+	margin: 0;
+	font-size: 1.4rem;
+	color: #6e737b;
+}

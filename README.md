@@ -1,0 +1,1 @@
+Angular 20 Club Supplies starter with Angular Material, responsive layout, dialogs, pages, theme, routing skeleton.

@@ -1,0 +1,53 @@
+<section class="dom-view" aria-label="DOM view">
+	<div class="dom-actions">
+		<button type="button" class="export-btn">Export to Excel</button>
+	</div>
+
+	@for (group of groups; track group.name; let i = $index) {
+		<section class="dom-group" [class.dom-group--open]="group.expanded">
+			<button
+				type="button"
+				class="dom-group__header"
+				[attr.aria-expanded]="group.expanded"
+				(click)="toggleGroup(i)">
+				<h2>{{ group.name }} ({{ group.count }})</h2>
+				<span class="chevron">{{ group.expanded ? '^' : 'v' }}</span>
+			</button>
+
+			@if (group.expanded) {
+				<div class="table-wrapper">
+					<table class="dom-table">
+						<thead>
+							<tr>
+								<th>Photo</th>
+								<th>Buyer</th>
+								<th>Club Name</th>
+								<th>Item Number</th>
+								<th>Item Desc</th>
+								<th>Qty</th>
+								<th>Total</th>
+								<th>Requested</th>
+								<th>Status</th>
+							</tr>
+						</thead>
+						<tbody>
+							@for (row of group.rows; track $index) {
+								<tr [class]="row.style">
+									<td><div class="photo-thumb"></div></td>
+									<td>{{ row.buyer }}</td>
+									<td>{{ row.clubName }}</td>
+									<td>{{ row.itemNumber }}</td>
+									<td><a href="#">{{ row.itemDesc }}</a></td>
+									<td>{{ row.qty }}</td>
+									<td>{{ row.total }}</td>
+									<td>{{ row.requested }}</td>
+									<td><button type="button">{{ row.status }}</button></td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			}
+		</section>
+	}
+</section>

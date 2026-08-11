@@ -1,0 +1,24 @@
+<section class="vendor-view" aria-label="Vendor accordion grid">
+	<div class="vendor-grid">
+		@for (vendor of vendors; track vendor.name + '-' + $index; let i = $index) {
+			<section class="vendor-card" [class.vendor-card--open]="vendor.expanded">
+				<button
+					type="button"
+					class="vendor-card__header"
+					[attr.aria-expanded]="vendor.expanded"
+					(click)="toggleVendor(i)">
+					<span>{{ vendor.name }} ({{ vendor.count }})</span>
+					<span class="chevron">{{ vendor.expanded ? '^' : 'v' }}</span>
+				</button>
+
+				@if (vendor.expanded) {
+					<div class="vendor-card__content">
+						@for (location of vendor.locations; track location.label) {
+							<a href="#">{{ location.label }} ^</a>
+						}
+					</div>
+				}
+			</section>
+		}
+	</div>
+</section>

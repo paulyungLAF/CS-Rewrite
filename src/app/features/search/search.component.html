@@ -1,0 +1,43 @@
+<section class="search-view" aria-label="Search filters">
+	<div class="search-row">
+		<label class="field-card" aria-label="Start Date">
+			<span>Start Date</span>
+			<input type="date" value="2024-06-17" />
+		</label>
+
+		<label class="field-card" aria-label="End Date">
+			<span>End Date</span>
+			<input type="date" value="2024-06-30" />
+		</label>
+
+		<label class="field-card" aria-label="Buyer ID">
+			<span>Buyer ID</span>
+			<select>
+				@for (buyer of buyerIds; track buyer) {
+					<option [value]="buyer">{{ buyer }}</option>
+				}
+			</select>
+		</label>
+
+		<label class="field-card" aria-label="Item Category">
+			<span>Item Category</span>
+			<select>
+				@for (category of itemCategories; track category) {
+					<option [value]="category">{{ category }}</option>
+				}
+			</select>
+		</label>
+
+		<label class="field-card" aria-label="Status">
+			<span>Status</span>
+			<select>
+				@for (status of statuses; track status) {
+					<option [value]="status">{{ status }}</option>
+				}
+			</select>
+		</label>
+
+		<button type="button" class="btn btn-primary">Get Result</button>
+		<button type="button" class="btn btn-success">Export to Excel</button>
+	</div>
+</section>

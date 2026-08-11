@@ -1,0 +1,1 @@
+export interface SupplyItem{itemId:number;description:string;}

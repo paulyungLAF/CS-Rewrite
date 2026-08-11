@@ -1,0 +1,80 @@
+<section class="order-list-view" aria-label="Order List">
+  <header class="order-list-header">
+    <div class="inventory-tabs" role="tablist" aria-label="Inventory Tabs">
+      <button type="button" [class.active]="activeInventoryTab === 'order'" (click)="activeInventoryTab = 'order'">Order List</button>
+      <button type="button" [class.active]="activeInventoryTab === 'cooler'" (click)="activeInventoryTab = 'cooler'">Cooler Inventory</button>
+      <button type="button" [class.active]="activeInventoryTab === 'retail'" (click)="activeInventoryTab = 'retail'">Retail Inventory</button>
+      <div class="header-actions">
+        <button type="button" class="create-btn">Create New Request</button>
+        <button type="button" class="rejected-btn">Rejected</button>
+      </div>
+    </div>
+  </header>
+
+  <p class="scope-label">Club Supplies - (Last 12 Months)</p>
+
+  <div class="toolbar-row">
+    <div class="status-pills" aria-label="Status filters">
+      <span class="pill pill-pending">Pending</span>
+      <span class="pill pill-action">Action</span>
+      <span class="pill pill-receiving">Receiving</span>
+    </div>
+    <label class="search-box" aria-label="Search orders">
+      <input type="text" placeholder="Search" [value]="searchText" (input)="searchText = $any($event.target).value" />
+    </label>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="data-grid">
+      <thead>
+        <tr>
+          <th>Photo</th>
+          <th>Item Description</th>
+          <th>Quantity</th>
+          <th>Qty Rec'd</th>
+          <th>Requst'd</th>
+          <th>Ordered</th>
+          <th>Date Rec'd</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of visibleRows; track $index) {
+          <tr [class]="row.tone">
+            <td><div class="photo-thumb">{{ row.photo }}</div></td>
+            <td><a href="#">{{ row.itemDescription }}</a></td>
+            <td>{{ row.quantity }}</td>
+            <td>{{ row.qtyReceived }}</td>
+            <td>{{ row.requestDate }}</td>
+            <td>{{ row.orderedDate }}</td>
+            <td>{{ row.dateReceived }}</td>
+            <td>
+              @if (row.status === 'Action' || row.status === 'Receive') {
+                <button type="button" class="row-action-btn">{{ row.status }}</button>
+              } @else {
+                <span>{{ row.status }}</span>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <footer class="pagination-row" aria-label="Pagination">
+    <button type="button">First</button>
+    <button type="button">Previous</button>
+    <span class="page active">1</span>
+    <span class="page">2</span>
+    <span class="page">3</span>
+    <span>...</span>
+    <span>100</span>
+    <button type="button">Next</button>
+    <button type="button" disabled>Page #</button>
+    <select>
+      <option>20</option>
+      <option>50</option>
+      <option>100</option>
+    </select>
+  </footer>
+</section>
