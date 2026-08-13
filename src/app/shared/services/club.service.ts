@@ -102,6 +102,11 @@ export class ClubService {
     );
   }
 
+  queryClubDropdown(): Observable<Club[]> {
+    const url = this.apiUrlService.buildUrl('Club', 'Get');
+    return this.http.get<Club[]>(url);
+  }
+
   getClubsApprovers(): ClubApprover[] {
     return this.approversList;
   }
@@ -122,6 +127,15 @@ export class ClubService {
         this.vendorsList = data ?? [];
       }),
       map(() => void 0)
+    );
+  }
+
+  queryAllClubsVendors(): Observable<ClubVendor[]> {
+    const url = this.apiUrlService.buildUrl('Vendor', 'GetAllClubsVendors');
+    return this.http.get<ClubVendor[]>(url).pipe(
+      tap((data) => {
+        this.vendorsList = data ?? [];
+      })
     );
   }
 

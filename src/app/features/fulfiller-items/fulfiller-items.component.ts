@@ -1,33 +1,27 @@
 import { Component, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { finalize } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { catchError, finalize } from 'rxjs/operators';
+import { CsService } from '../../shared/services/cs.service';
 import { ExportService } from '../../shared/services/export.service';
-import { CsService, DomSummaryResult } from '../../shared/services/cs.service';
 
-type DomRowStyle = 'row-action' | 'row-warn' | 'row-complete' | '';
-
-interface DomItemRow {
-  photo: string;
-  buyer: string;
-  requester: string;
-  requesterNote: string;
-  clubName: string;
-  itemNumber: string;
-  itemDesc: string;
-  qty: number;
-  total: string;
-  requested: string;
-  action: number | null;
-  needFurtherAction: boolean;
-  status: string;
-  style: DomRowStyle;
+interface FulfillerItemRow {
+  deptID: string;
+  vendor: string;
+  item: string;
+  qty: string;
+  approved: string;
+  orderNumber: string;
+  trackingNumber: string;
+  orderInput: string;
+  trackingInput: string;
 }
 
-interface DomGroup {
-  name: string;
+interface FulfillerClubGroup {
+  clubName: string;
   count: number;
   expanded: boolean;
-  rows: DomItemRow[];
+  rows: FulfillerItemRow[];
 }
 
 @Component({
@@ -39,16 +33,11 @@ interface DomGroup {
   styleUrls: ['./fulfiller-items.component.scss']
 })
 export class FulfillerItemsComponent implements OnInit {
+  private static readonly AD_ACCOUNT = '1913312';
+
   isExporting = false;
   isLoading = false;
-  isStatusModalOpen = false;
-  selectedRow: DomItemRow | null = null;
-  requestedQtyInput = '';
-  selectedDecision = 'approve';
-  reviewerNote = '';
-  sendBackToApprover = true;
-
-  groups: DomGroup[] = [];
+  groups: FulfillerClubGroup[] = [];
 
   constructor(
     private readonly exportService: ExportService,
@@ -56,7 +45,7 @@ export class FulfillerItemsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadDomSummary();
+    this.loadFulfillerItems();
   }
 
   exportToExcel(): void {
@@ -79,207 +68,164 @@ export class FulfillerItemsComponent implements OnInit {
     this.groups[index].expanded = !this.groups[index].expanded;
   }
 
-  openStatusModal(row: DomItemRow): void {
-    this.selectedRow = row;
-    this.requestedQtyInput = `${row.qty || ''}`;
-    this.selectedDecision = row.status === 'Action' ? 'reject' : 'approve';
-    this.reviewerNote = '';
-    this.sendBackToApprover = true;
-    this.isStatusModalOpen = true;
+  markOrderVerified(row: FulfillerItemRow): void {
+    if (!row.orderInput.trim() && row.orderNumber) {
+      row.orderInput = row.orderNumber;
+    }
   }
 
-  closeStatusModal(): void {
-    this.isStatusModalOpen = false;
-    this.selectedRow = null;
+  markFulfilled(row: FulfillerItemRow): void {
+    if (!row.trackingInput.trim() && row.trackingNumber) {
+      row.trackingInput = row.trackingNumber;
+    }
   }
 
-  private loadDomSummary(): void {
+  private loadFulfillerItems(): void {
     this.isLoading = true;
     this.csService
-      .getAllDomSummary()
-      .pipe(finalize(() => (this.isLoading = false)))
-      .subscribe({
-        next: (data) => {
-          this.groups = this.mapToGroups(data);
-        },
-        error: () => {
-          this.groups = [];
-        }
+      .getUnFulFilledItemsByAD(FulfillerItemsComponent.AD_ACCOUNT)
+      .pipe(
+        catchError(() => of(null)),
+        finalize(() => (this.isLoading = false))
+      )
+      .subscribe((payload) => {
+        this.groups = this.mapToClubGroups(payload);
       });
   }
 
-  private mapToGroups(data: DomSummaryResult[] | null | undefined): DomGroup[] {
-    if (!data || data.length === 0) {
+  private mapToClubGroups(payload: unknown): FulfillerClubGroup[] {
+    const rows = this.extractAllObjects(payload);
+
+    if (rows.length === 0) {
       return [];
     }
 
-    const grouped = new Map<string, DomItemRow[]>();
+    const grouped = new Map<string, FulfillerItemRow[]>();
 
-    for (const item of data) {
-      const domName =
-        this.readString(item, ['OperationsDistrictVP', 'operationsDistrictVP']) ||
-        'Unassigned DOM';
-      const action = this.readAction(item);
-      const needFurtherAction = this.readBoolean(item, [
-        'NeedFurtherAction',
-        'needFurtherAction'
+    for (const row of rows) {
+      const clubName = this.readDisplayValue(row, [
+        'ClubName',
+        'clubName',
+        'Location',
+        'location',
+        'Localtion',
+        'localtion',
+        'Club',
+        'club'
       ]);
 
-      const row: DomItemRow = {
-        photo: this.readString(item, ['Photo', 'photo']),
-        buyer: this.readString(item, ['BuyerID', 'buyerID', 'Buyer', 'buyer']),
-        requester: this.readString(item, ['RequestBy', 'RequestedBy', 'requestBy', 'requestedBy']),
-        requesterNote: this.readString(item, ['RequesterNote', 'Note', 'requesterNote', 'note']),
-        clubName: this.readString(item, ['Location', 'location']),
-        itemNumber: this.readString(item, ['ItemNumber', 'itemNumber']),
-        itemDesc: this.readString(item, ['DisplayName', 'displayName']),
-        qty: this.readNumber(item, ['Qty', 'qty']),
-        total: this.readCurrency(item, ['LineTotal', 'lineTotal']),
-        requested: this.formatDate(this.readUnknown(item, ['CreatedDate', 'createdDate'])),
-        action,
-        needFurtherAction,
-        status: this.getStatusLabel(action, needFurtherAction),
-        style: ''
+      if (!clubName) {
+        continue;
+      }
+
+      const mappedRow: FulfillerItemRow = {
+        deptID: this.readDisplayValue(row, ['DeptID', 'deptID', 'DepartmentID', 'departmentID', 'ClubID', 'clubID']) || 'N/A',
+        vendor: this.readDisplayValue(row, ['Vendor', 'vendor']) || 'N/A',
+        item: this.readDisplayValue(row, ['DisplayName', 'displayName', 'Item', 'item', 'ItemDesc', 'itemDesc']) || 'N/A',
+        qty: this.readDisplayValue(row, ['Qty', 'qty', 'Quantity', 'quantity']) || '0',
+        approved: this.formatDate(this.readRawValue(row, ['CreatedDate', 'createdDate', 'ApprovedDate', 'approvedDate'])),
+        orderNumber: this.readDisplayValue(row, ['OrderNumber', 'orderNumber', 'PO', 'po']) || '',
+        trackingNumber: this.readDisplayValue(row, ['TrackingNumber', 'trackingNumber', 'Tracking', 'tracking']) || '',
+        orderInput: this.readDisplayValue(row, ['OrderNumber', 'orderNumber', 'PO', 'po']) || '',
+        trackingInput: this.readDisplayValue(row, ['TrackingNumber', 'trackingNumber', 'Tracking', 'tracking']) || ''
       };
 
-      const rows = grouped.get(domName) ?? [];
-      rows.push(row);
-      grouped.set(domName, rows);
+      const bucket = grouped.get(clubName) ?? [];
+      bucket.push(mappedRow);
+      grouped.set(clubName, bucket);
     }
 
-    return Array.from(grouped.entries()).map(([name, rows]) => ({
-      name,
-      count: rows.length,
+    return Array.from(grouped.entries()).map(([clubName, clubRows]) => ({
+      clubName,
+      count: clubRows.length,
       expanded: false,
-      rows
+      rows: clubRows
     }));
   }
 
-  private readString(item: DomSummaryResult, keys: string[]): string {
-    for (const key of keys) {
-      const value = item[key];
-      if (typeof value === 'string' && value.trim().length > 0) {
-        return value.trim();
-      }
-    }
-    return '';
-  }
+  private extractAllObjects(payload: unknown): Array<{ [key: string]: unknown }> {
+    const queue: unknown[] = [payload];
+    const objects: Array<{ [key: string]: unknown }> = [];
 
-  private readNumber(item: DomSummaryResult, keys: string[]): number {
-    for (const key of keys) {
-      const value = item[key];
-      if (typeof value === 'number' && Number.isFinite(value)) {
-        return value;
+    while (queue.length > 0) {
+      const candidate = queue.shift();
+      if (!candidate) {
+        continue;
       }
-      if (typeof value === 'string') {
-        const parsed = Number.parseFloat(value);
-        if (!Number.isNaN(parsed)) {
-          return parsed;
+
+      if (Array.isArray(candidate)) {
+        queue.push(...candidate);
+        continue;
+      }
+
+      if (typeof candidate !== 'object') {
+        continue;
+      }
+
+      const item = candidate as { [key: string]: unknown };
+      objects.push(item);
+
+      for (const value of Object.values(item)) {
+        if (Array.isArray(value) || (value && typeof value === 'object')) {
+          queue.push(value);
         }
       }
     }
-    return 0;
+
+    return objects;
   }
 
-  private readUnknown(item: DomSummaryResult, keys: string[]): unknown {
+  private readDisplayValue(row: { [key: string]: unknown }, keys: string[]): string {
+    const value = this.readRawValue(row, keys);
+
+    if (typeof value === 'string') {
+      return value.trim();
+    }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return `${value}`;
+    }
+
+    return '';
+  }
+
+  private readRawValue(row: { [key: string]: unknown }, keys: string[]): unknown {
+    const normalized = new Map<string, unknown>();
+    for (const key of Object.keys(row)) {
+      normalized.set(key.toLowerCase(), row[key]);
+    }
+
     for (const key of keys) {
-      if (key in item) {
-        return item[key];
+      if (normalized.has(key.toLowerCase())) {
+        return normalized.get(key.toLowerCase());
       }
     }
-    return null;
-  }
 
-  private readCurrency(item: DomSummaryResult, keys: string[]): string {
-    const raw = this.readUnknown(item, keys);
-    if (typeof raw === 'number') {
-      return `$${raw.toFixed(2)}`;
-    }
-    if (typeof raw === 'string' && raw.trim().length > 0) {
-      return raw;
-    }
-    return '$0.00';
+    return null;
   }
 
   private formatDate(raw: unknown): string {
     if (typeof raw === 'string') {
-      const match = /\/Date\((\d+)\)\//.exec(raw);
-      const date = match ? new Date(Number.parseInt(match[1], 10)) : new Date(raw);
-      if (!Number.isNaN(date.getTime())) {
-        return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+      const trimmed = raw.trim();
+      if (!trimmed) {
+        return 'N/A';
       }
+
+      const match = /\/Date\((\d+)\)\//.exec(trimmed);
+      const parsed = match ? new Date(Number.parseInt(match[1], 10)) : new Date(trimmed);
+      if (!Number.isNaN(parsed.getTime())) {
+        return `${parsed.getMonth() + 1}/${parsed.getDate()}/${parsed.getFullYear()}`;
+      }
+      return 'N/A';
     }
 
     if (typeof raw === 'number' && Number.isFinite(raw)) {
-      const date = new Date(raw);
-      if (!Number.isNaN(date.getTime())) {
-        return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+      const parsed = new Date(raw);
+      if (!Number.isNaN(parsed.getTime())) {
+        return `${parsed.getMonth() + 1}/${parsed.getDate()}/${parsed.getFullYear()}`;
       }
     }
 
     return 'N/A';
   }
-
-  private readAction(item: DomSummaryResult): number | null {
-    const raw = this.readUnknown(item, ['Action', 'action']);
-    if (typeof raw === 'number' && Number.isFinite(raw)) {
-      return raw;
-    }
-    if (typeof raw === 'string') {
-      const parsed = Number.parseInt(raw, 10);
-      if (!Number.isNaN(parsed)) {
-        return parsed;
-      }
-    }
-    return null;
-  }
-
-  private getStatusLabel(action: number | null, needFurtherAction: boolean): string {
-    if (action === -1) {
-      return 'New';
-    }
-    if (action === 2 && !needFurtherAction) {
-      return 'Responded';
-    }
-    return 'Action';
-  }
-
-  private readBoolean(item: DomSummaryResult, keys: string[]): boolean {
-    for (const key of keys) {
-      const value = item[key];
-      if (typeof value === 'boolean') {
-        return value;
-      }
-      if (typeof value === 'number') {
-        return value !== 0;
-      }
-      if (typeof value === 'string') {
-        const normalized = value.trim().toLowerCase();
-        if (normalized === 'true' || normalized === '1') {
-          return true;
-        }
-        if (normalized === 'false' || normalized === '0') {
-          return false;
-        }
-      }
-    }
-    return false;
-  }
-
-  isNewStatus(row: DomItemRow | null): boolean {
-    return !!row && row.status === 'New';
-  }
-
-  isActionStatus(row: DomItemRow | null): boolean {
-    return !!row && row.status === 'Action';
-  }
-
-  isRespondedStatus(row: DomItemRow | null): boolean {
-    return !!row && row.status === 'Responded';
-  }
-
-  noteLength(): number {
-    return this.reviewerNote.length;
-  }
-
 }

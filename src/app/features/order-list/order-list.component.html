@@ -20,7 +20,7 @@
       <span class="pill pill-receiving">Receiving</span>
     </div>
     <label class="search-box" aria-label="Search orders">
-      <input type="text" placeholder="Search" [value]="searchText" (input)="searchText = $any($event.target).value" />
+      <input type="text" placeholder="Search" [value]="searchText" (input)="onSearchChange($any($event.target).value)" />
     </label>
   </div>
 
@@ -39,9 +39,28 @@
         </tr>
       </thead>
       <tbody>
-        @for (row of visibleRows; track $index) {
+        @if (isLoading) {
+          <tr>
+            <td colspan="8">Loading order list...</td>
+          </tr>
+        } @else if (visibleRows.length === 0) {
+          <tr>
+            <td colspan="8">No orders available for the selected club.</td>
+          </tr>
+        }
+        @for (row of pagedRows; track $index) {
           <tr [class]="row.tone">
-            <td><div class="photo-thumb">{{ row.photo }}</div></td>
+            <td>
+              <div class="photo-wrap">
+                @if (row.photo !== 'N/A') {
+                  <img class="photo-img" [src]="row.photo" alt="Item photo" (error)="onPhotoLoadError($event)" />
+                  <img class="photo-preview" [src]="row.photo" alt="Item photo preview" />
+                  <div class="photo-cell photo-cell--hidden">PIC</div>
+                } @else {
+                  <div class="photo-cell">PIC</div>
+                }
+              </div>
+            </td>
             <td><a href="#">{{ row.itemDescription }}</a></td>
             <td>{{ row.quantity }}</td>
             <td>{{ row.qtyReceived }}</td>
@@ -62,19 +81,36 @@
   </div>
 
   <footer class="pagination-row" aria-label="Pagination">
-    <button type="button">First</button>
-    <button type="button">Previous</button>
-    <span class="page active">1</span>
-    <span class="page">2</span>
-    <span class="page">3</span>
-    <span>...</span>
-    <span>100</span>
-    <button type="button">Next</button>
-    <button type="button" disabled>Page #</button>
-    <select>
-      <option>20</option>
-      <option>50</option>
-      <option>100</option>
+    <button type="button" (click)="goToFirstPage()" [disabled]="!hasPreviousPage">First</button>
+    <button type="button" (click)="goToPreviousPage()" [disabled]="!hasPreviousPage">Previous</button>
+
+    @if (pageNumbers.length > 0 && pageNumbers[0] > 1) {
+      <button type="button" class="page" (click)="goToPage(1)">1</button>
+    }
+    @if (showLeadingEllipsis) {
+      <span>...</span>
+    }
+
+    @for (page of pageNumbers; track page) {
+      <button type="button" class="page" [class.active]="page === currentPage" (click)="goToPage(page)">{{ page }}</button>
+    }
+
+    @if (showTrailingEllipsis) {
+      <span>...</span>
+    }
+    @if (pageNumbers.length > 0 && pageNumbers[pageNumbers.length - 1] < totalPages) {
+      <button type="button" class="page" (click)="goToPage(totalPages)">{{ totalPages }}</button>
+    }
+
+    <button type="button" (click)="goToNextPage()" [disabled]="!hasNextPage">Next</button>
+    <button type="button" (click)="goToLastPage()" [disabled]="!hasNextPage">Last</button>
+
+    <span>Page {{ currentPage }} of {{ totalPages }}</span>
+    <select [value]="pageSize" (change)="onPageSizeChange($any($event.target).value)">
+      <option [value]="9">9</option>
+      <option [value]="25">25</option>
+      <option [value]="50">50</option>
+      <option [value]="100">100</option>
     </select>
   </footer>
 </section>

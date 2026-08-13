@@ -1,0 +1,352 @@
+<section class="dom-view" aria-label="DOM view">
+  @if (isLoading) {
+    <p class="state-text">Loading DOM summary...</p>
+  } @else if (groups.length === 0) {
+    <p class="state-text">No DOM summary data available.</p>
+  } @else {
+    @for (group of groups; track group.name + '-' + $index; let i = $index) {
+      <section class="dom-group" [class.dom-group--open]="group.expanded">
+        <button
+          type="button"
+          class="dom-group__header"
+          [attr.aria-expanded]="group.expanded"
+          (click)="toggleGroup(i)">
+          <h2>{{ group.name }} ({{ group.count }})</h2>
+          <span class="chevron">{{ group.expanded ? '^' : 'v' }}</span>
+        </button>
+
+        @if (group.expanded) {
+          <div class="table-wrapper">
+            <table class="dom-table">
+              <thead>
+                <tr>
+                  <th>Photo</th>
+                  <th>Buyer</th>
+                  <th>Club Name</th>
+                  <th>Item Number</th>
+                  <th>Item Desc</th>
+                  <th>Qty</th>
+                  <th>Total</th>
+                  <th>Requested</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of group.rows; track $index) {
+                  <tr [class]="row.tone">
+                    <td>
+                      <div class="photo-wrap">
+                        @if (row.photo) {
+                          <img class="photo-img" [src]="row.photo" alt="Item photo" (error)="onPhotoLoadError($event)" />
+                          <img class="photo-preview" [src]="row.photo" alt="Item photo preview" />
+                          <div class="photo-cell photo-cell--hidden">PIC</div>
+                        } @else {
+                          <div class="photo-cell">PIC</div>
+                        }
+                      </div>
+                    </td>
+                    <td>{{ row.buyer }}</td>
+                    <td>{{ row.clubName }}</td>
+                    <td>{{ row.itemNumber }}</td>
+                    <td><a href="#" class="item-link" (click)="onItemClick($event)">{{ row.itemDesc }}</a></td>
+                    <td>{{ row.qty }}</td>
+                    <td>{{ row.total }}</td>
+                    <td>{{ row.requested }}</td>
+                    <td><button type="button" class="status-pill" (click)="openStatusModal(row)">{{ row.status }}</button></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    }
+  }
+
+  @if (isStatusModalOpen && selectedRow) {
+    <div class="status-modal-backdrop" (click)="closeStatusModal()">
+      @if (isActionStatus(selectedRow) || isRespondedStatus(selectedRow)) {
+        <div class="status-modal status-modal--action" role="dialog" aria-modal="true" aria-label="Action item modal" (click)="$event.stopPropagation()">
+          <button class="status-modal__x" type="button" aria-label="Close" (click)="closeStatusModal()">x</button>
+
+          <p class="status-modal__action-title">{{ selectedRow.itemDesc }} {{ selectedRow.itemNumber }}</p>
+
+          <div class="status-modal__request-row">
+            <div class="status-modal__request-box">
+              <div class="status-modal__request-label">Requested By</div>
+              <div class="status-modal__request-value">{{ selectedRow.poCreator || 'N/A' }}</div>
+            </div>
+            <div class="status-modal__request-box">
+              <div class="status-modal__request-label">Requester’s Note</div>
+              <div class="status-modal__request-value">{{ isModalRequesterNoteLoading ? 'Loading...' : (modalRequesterNote || 'N/A') }}</div>
+            </div>
+          </div>
+
+          <p class="status-modal__prompt">Select one action to proceed with this order:</p>
+
+          <div class="status-modal__new-actions-row">
+            <div class="status-modal__new-actions-left status-modal__action-controls">
+              <label class="status-modal__qty">Approved Qty
+                <input type="text" [(ngModel)]="requestedQtyInput" (ngModelChange)="onApprovedQtyChange($event)" />
+              </label>
+              <label class="status-modal__radio">
+                <input type="radio" name="decision" value="reject" [(ngModel)]="selectedDecision" /> Reject
+              </label>
+              <label class="status-modal__radio">
+                <input type="radio" name="decision" value="further-action" [(ngModel)]="selectedDecision" /> Further Action Required
+              </label>
+            </div>
+
+            @if (isRespondedStatus(selectedRow)) {
+              <div class="status-modal__checkins">
+                <p class="status-modal__checkins-title">3 Week Ave Check-Ins:</p>
+                <div class="status-modal__checkins-row">
+                  <span>Kids Klub Mon - Fri</span>
+                  <span>{{ isModalKkLoading ? 'Loading...' : modalCheckInsMonFri }}</span>
+                </div>
+                <div class="status-modal__checkins-row">
+                  <span>Kids Klub Sat - Sun</span>
+                  <span>{{ isModalKkLoading ? 'Loading...' : modalCheckInsSatSun }}</span>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="status-modal__section status-modal__history">
+            <p class="status-modal__section-title">Item History</p>
+            <div class="status-modal__history-grid status-modal__history-grid--head">
+              <span>Order Date</span>
+              <span>Rec’d Date</span>
+              <span>Qty Ordered</span>
+              <span>Qty Rec’d</span>
+              <span>Status</span>
+            </div>
+            @if (isModalOrderHistoryLoading) {
+              <div class="status-modal__history-grid">
+                <span>Loading...</span>
+                <span>Loading...</span>
+                <span>Loading...</span>
+                <span>Loading...</span>
+                <span>Loading...</span>
+              </div>
+            } @else if (modalItemHistoryRows.length === 0) {
+              <div class="status-modal__history-grid">
+                <span>N/A</span>
+                <span>N/A</span>
+                <span>N/A</span>
+                <span>N/A</span>
+                <span>N/A</span>
+              </div>
+            } @else {
+              @for (historyRow of modalItemHistoryRows; track $index) {
+                <div class="status-modal__history-grid">
+                  <span>{{ historyRow.orderDate }}</span>
+                  <span>{{ historyRow.receivedDate }}</span>
+                  <span>{{ historyRow.qtyOrdered }}</span>
+                  <span>{{ historyRow.qtyReceived }}</span>
+                  <span>{{ historyRow.status }}</span>
+                </div>
+              }
+            }
+          </div>
+
+          <div class="status-modal__section status-modal__history">
+            <p class="status-modal__section-title">Note History</p>
+            <div class="status-modal__history-grid status-modal__history-grid--head status-modal__history-grid--note">
+              <span>Date</span>
+              <span>Created By</span>
+              <span>Note</span>
+            </div>
+            @if (isModalNoteHistoryLoading) {
+              <div class="status-modal__history-grid status-modal__history-grid--note">
+                <span>Loading...</span>
+                <span>Loading...</span>
+                <span>Loading...</span>
+              </div>
+            } @else if (modalNoteHistoryRows.length === 0) {
+              <div class="status-modal__history-grid status-modal__history-grid--note">
+                <span>N/A</span>
+                <span>N/A</span>
+                <span>N/A</span>
+              </div>
+            } @else {
+              @for (historyRow of modalNoteHistoryRows; track $index) {
+                <div class="status-modal__history-grid status-modal__history-grid--note">
+                  <span>{{ historyRow.date }}</span>
+                  <span>{{ historyRow.createdBy }}</span>
+                  <span>{{ historyRow.note }}</span>
+                </div>
+              }
+            }
+          </div>
+
+          <div class="status-modal__section status-modal__notes-block">
+            <textarea
+              rows="3"
+              maxlength="250"
+              [(ngModel)]="reviewerNote"
+              [placeholder]="reviewerNotePlaceholder"
+              (focus)="onReviewerNoteFocus()"
+              (blur)="onReviewerNoteBlur()"></textarea>
+            <div class="status-modal__note-count">{{ noteLength() }}/250</div>
+          </div>
+
+          <label class="status-modal__send-back">
+            <input type="checkbox" [(ngModel)]="sendBackToApprover" />
+            <span>Send action back to approver</span>
+          </label>
+
+          <div class="status-modal__warning">
+            <span class="status-modal__warning-icon" aria-hidden="true">&#9888;</span>
+            <span>{{ modalWarningMessage }}</span>
+          </div>
+
+          <div class="status-modal__actions status-modal__actions--action">
+            <button type="button" class="btn-close" (click)="closeStatusModal()">Close</button>
+            <button type="button" class="btn-save" [disabled]="!canSaveChanges" (click)="closeStatusModal()">Save Changes</button>
+          </div>
+        </div>
+      } @else if (isNewStatus(selectedRow)) {
+        <div class="status-modal status-modal--new" role="dialog" aria-modal="true" aria-label="New item action" (click)="$event.stopPropagation()">
+          <button class="status-modal__x" type="button" aria-label="Close" (click)="closeStatusModal()">x</button>
+
+          <p class="status-modal__action-title">{{ selectedRow.itemDesc }} {{ selectedRow.itemNumber }}</p>
+
+          <div class="status-modal__request-row">
+            <div class="status-modal__request-box">
+              <div class="status-modal__request-label">Requested By</div>
+              <div class="status-modal__request-value">{{ selectedRow.poCreator || 'N/A' }}</div>
+            </div>
+            <div class="status-modal__request-box">
+              <div class="status-modal__request-label">Requester’s Note</div>
+              <div class="status-modal__request-value">{{ isModalRequesterNoteLoading ? 'Loading...' : (modalRequesterNote || 'N/A') }}</div>
+            </div>
+          </div>
+
+          <p class="status-modal__prompt">Select one action to proceed with this order:</p>
+
+          <div class="status-modal__new-actions-left status-modal__action-controls">
+            <label class="status-modal__qty">Approved Qty
+              <input type="text" [(ngModel)]="requestedQtyInput" (ngModelChange)="onApprovedQtyChange($event)" />
+            </label>
+            <label class="status-modal__radio">
+              <input type="radio" name="decision" value="reject" [(ngModel)]="selectedDecision" /> Reject
+            </label>
+            <label class="status-modal__radio">
+              <input type="radio" name="decision" value="further-action" [(ngModel)]="selectedDecision" /> Further Action Required
+            </label>
+          </div>
+
+          <div class="status-modal__section status-modal__history">
+            <p class="status-modal__section-title">Item History</p>
+            <div class="status-modal__history-grid status-modal__history-grid--head">
+              <span>Order Date</span>
+              <span>Rec’d Date</span>
+              <span>Qty Ordered</span>
+              <span>Qty Rec’d</span>
+              <span>Status</span>
+            </div>
+            @if (isModalOrderHistoryLoading) {
+              <div class="status-modal__history-grid">
+                <span>Loading...</span>
+                <span>Loading...</span>
+                <span>Loading...</span>
+                <span>Loading...</span>
+                <span>Loading...</span>
+              </div>
+            } @else if (modalItemHistoryRows.length === 0) {
+              <div class="status-modal__history-grid">
+                <span>N/A</span>
+                <span>N/A</span>
+                <span>N/A</span>
+                <span>N/A</span>
+                <span>N/A</span>
+              </div>
+            } @else {
+              @for (historyRow of modalItemHistoryRows; track $index) {
+                <div class="status-modal__history-grid">
+                  <span>{{ historyRow.orderDate }}</span>
+                  <span>{{ historyRow.receivedDate }}</span>
+                  <span>{{ historyRow.qtyOrdered }}</span>
+                  <span>{{ historyRow.qtyReceived }}</span>
+                  <span>{{ historyRow.status }}</span>
+                </div>
+              }
+            }
+          </div>
+
+          <div class="status-modal__section status-modal__history">
+            <p class="status-modal__section-title">Note History</p>
+            <div class="status-modal__history-grid status-modal__history-grid--head status-modal__history-grid--note">
+              <span>Date</span>
+              <span>Created By</span>
+              <span>Note</span>
+            </div>
+            @if (isModalNoteHistoryLoading) {
+              <div class="status-modal__history-grid status-modal__history-grid--note">
+                <span>Loading...</span>
+                <span>Loading...</span>
+                <span>Loading...</span>
+              </div>
+            } @else if (modalNoteHistoryRows.length === 0) {
+              <div class="status-modal__history-grid status-modal__history-grid--note">
+                <span>N/A</span>
+                <span>N/A</span>
+                <span>N/A</span>
+              </div>
+            } @else {
+              @for (historyRow of modalNoteHistoryRows; track $index) {
+                <div class="status-modal__history-grid status-modal__history-grid--note">
+                  <span>{{ historyRow.date }}</span>
+                  <span>{{ historyRow.createdBy }}</span>
+                  <span>{{ historyRow.note }}</span>
+                </div>
+              }
+            }
+          </div>
+
+          <div class="status-modal__section status-modal__notes-block">
+            <div class="status-modal__note-tabs" role="tablist" aria-label="Note targets">
+              <button type="button" [class.active]="noteTarget === 'requestor'" (click)="setNoteTarget('requestor')">Note to Requestor</button>
+              <button type="button" [class.active]="noteTarget === 'workday'" (click)="setNoteTarget('workday')">Note to Workday Approver</button>
+              <button type="button" [class.active]="noteTarget === 'vendor'" (click)="setNoteTarget('vendor')">Note to Vendor</button>
+            </div>
+
+            <textarea
+              rows="3"
+              maxlength="250"
+              [(ngModel)]="reviewerNote"
+              [placeholder]="reviewerNotePlaceholder"
+              (focus)="onReviewerNoteFocus()"
+              (blur)="onReviewerNoteBlur()"></textarea>
+            <div class="status-modal__note-count">{{ noteLength() }}/250</div>
+          </div>
+
+          <div class="status-modal__warning">
+            <span class="status-modal__warning-icon" aria-hidden="true">&#9888;</span>
+            <span>{{ modalWarningMessage }}</span>
+          </div>
+
+          <div class="status-modal__actions status-modal__actions--new">
+            <button type="button" class="btn-close" (click)="closeStatusModal()">Close</button>
+            <button type="button" class="btn-save" [disabled]="!canSaveChanges" (click)="closeStatusModal()">Save Changes</button>
+          </div>
+        </div>
+      } @else {
+        <div class="status-modal" role="dialog" aria-modal="true" aria-label="Line Item Status" (click)="$event.stopPropagation()">
+          <button class="status-modal__x" type="button" aria-label="Close" (click)="closeStatusModal()">x</button>
+          <h3 class="status-modal__title">Status Action</h3>
+          <div class="status-modal__details">
+            <p><strong>Status:</strong> {{ selectedRow.status }}</p>
+            <p><strong>Buyer:</strong> {{ selectedRow.buyer }}</p>
+            <p><strong>Item Number:</strong> {{ selectedRow.itemNumber }}</p>
+            <p><strong>Item Description:</strong> {{ selectedRow.itemDesc }}</p>
+          </div>
+          <div class="status-modal__actions">
+            <button type="button" class="btn-close" (click)="closeStatusModal()">Close</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</section>

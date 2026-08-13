@@ -31,6 +31,22 @@ export interface DomSummaryResult {
   [key: string]: unknown;
 }
 
+export interface ItemHistoryResult {
+  [key: string]: unknown;
+}
+
+export interface OrderHistoryResult {
+  [key: string]: unknown;
+}
+
+export interface KkDataResult {
+  [key: string]: unknown;
+}
+
+export interface FulFillerItemResult {
+  [key: string]: unknown;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -56,8 +72,9 @@ export class CsService {
   }
 
   getPermissions(adAccount: string): Observable<PermissionResult[]> {
-    const serviceRoot = this.getServiceRoot();
-    const url = `${serviceRoot}Permission/GetBuyerIDsByAD`;
+    // This endpoint is intentionally outside the /api segment.
+    const nonApiRoot = this.apiUrlService.getBaseUrl().replace(/api\/?$/i, '');
+    const url = `${nonApiRoot}Permission/GetBuyerIDsByAD`;
     const params = new HttpParams().set('ad', adAccount);
     return this.http.get<PermissionResult[]>(url, { params });
   }
@@ -94,6 +111,39 @@ export class CsService {
 
   getAllDomSummary(): Observable<DomSummaryResult[]> {
     return this.http.get<DomSummaryResult[]>(this.domSummaryUrl);
+  }
+
+  getItemHist(spid: string, rowID: string): Observable<ItemHistoryResult[]> {
+    const serviceRoot = this.getServiceRoot();
+    const url = `${serviceRoot}CSReport/GetItemHist`;
+    const params = new HttpParams().set('SPID', spid).set('RowID', rowID);
+    return this.http.get<ItemHistoryResult[]>(url, { params });
+  }
+
+  getOrderHistByClubItem(clubID: string, itemNumber: string): Observable<OrderHistoryResult[]> {
+    const url = this.apiUrlService.buildUrl('CSItem', 'GetOrderHistByClubItem');
+    const params = new HttpParams().set('clubID', clubID).set('itemNumber', itemNumber);
+    return this.http.get<OrderHistoryResult[]>(url, { params });
+  }
+
+  getKkData(clubID: string): Observable<KkDataResult[]> {
+    const serviceRoot = this.getServiceRoot();
+    const url = `${serviceRoot}CSReport/GetKKData`;
+    const params = new HttpParams().set('ClubID', clubID);
+    return this.http.get<KkDataResult[]>(url, { params });
+  }
+
+  getClubSuppliesOrdered(clubID: string): Observable<CsOrderRow[]> {
+    const serviceRoot = this.getServiceRoot();
+    const url = `${serviceRoot}CSReport/GetClubSuppliesOrdered`;
+    const params = new HttpParams().set('clubID', clubID);
+    return this.http.get<CsOrderRow[]>(url, { params });
+  }
+
+  getUnFulFilledItemsByAD(adAccount: string): Observable<FulFillerItemResult[]> {
+    const url = this.apiUrlService.buildUrl('FulFiller', 'GetUnFulFilledItemsByAD');
+    const params = new HttpParams().set('ADAccount', adAccount);
+    return this.http.get<FulFillerItemResult[]>(url, { params });
   }
 
   private getServiceRoot(): string {

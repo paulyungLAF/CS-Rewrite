@@ -4,9 +4,9 @@
 		<div class="brand-title-row">
 			<h1>EXEC CLUB SUPPLIES</h1>
 			<span>/</span>
-			<select [value]="clubContext.selectedClub" (change)="onClubChange($event)" aria-label="Select club">
-				@for (club of clubContext.clubs; track club) {
-					<option [value]="club">{{ club }}</option>
+			<select [value]="clubContext.selectedClubId" (change)="onClubChange($event)" aria-label="Select club">
+				@for (club of clubContext.clubs; track club.id) {
+					<option [value]="club.id">{{ club.name }}</option>
 				}
 			</select>
 		</div>

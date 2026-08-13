@@ -1,4 +1,10 @@
 <section class="vendor-view" aria-label="Vendor accordion grid">
+	@if (isLoading) {
+		<p>Loading vendors...</p>
+	} @else if (vendors.length === 0) {
+		<p>No vendor rows available.</p>
+	}
+
 	<div class="vendor-grid">
 		@for (vendor of vendors; track vendor.name + '-' + $index; let i = $index) {
 			<section class="vendor-card" [class.vendor-card--open]="vendor.expanded">
@@ -13,8 +19,8 @@
 
 				@if (vendor.expanded) {
 					<div class="vendor-card__content">
-						@for (location of vendor.locations; track location.label) {
-							<a href="#">{{ location.label }} ^</a>
+						@for (location of vendor.locations; track location.clubName) {
+							<a href="#" (click)="onClubLinkClick($event, location.clubName)">{{ location.clubName }} ({{ location.count }})</a>
 						}
 					</div>
 				}

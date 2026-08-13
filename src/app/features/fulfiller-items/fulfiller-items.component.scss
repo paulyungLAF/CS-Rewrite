@@ -1,14 +1,22 @@
-.dom-view {
+.fulfiller-view {
 	display: grid;
-	gap: 16px;
-	background: #ffffff;
+	gap: 10px;
 	padding: 8px 0;
+	background: #fff;
 }
 
-.dom-actions {
+.fulfiller-actions {
 	display: flex;
-	justify-content: flex-end;
+	justify-content: space-between;
+	align-items: center;
 	padding: 0 12px;
+}
+
+.clubs-count {
+	margin: 0;
+	font-size: 1.6rem;
+	font-weight: 600;
+	color: #2d3136;
 }
 
 .export-btn {
@@ -16,379 +24,140 @@
 	border-radius: 4px;
 	padding: 8px 12px;
 	font-size: 1.9rem;
-	color: #ffffff;
+	color: #fff;
 	background: #1c9b66;
 	cursor: pointer;
 }
 
-.dom-group {
-	border: 1px solid #d5d8dd;
-	border-radius: 10px;
-	background: #f1f3f5;
-	overflow: hidden;
-	margin: 0 12px;
+.export-btn:disabled {
+	opacity: 0.7;
+	cursor: not-allowed;
 }
 
-.dom-group__header {
+.state-text {
+	margin: 8px 12px;
+	padding: 12px;
+	border-radius: 6px;
+	background: #f1f3f5;
+	color: #2d3136;
+	font-size: 1.6rem;
+}
+
+.club-group {
+	margin: 0 12px;
+	border: 1px solid #d5d8dd;
+	border-radius: 8px;
+	overflow: hidden;
+	background: #f1f3f5;
+}
+
+.club-group__header {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	width: 100%;
 	border: 0;
+	padding: 18px 14px;
 	background: #f1f3f5;
 	cursor: pointer;
-	padding: 16px;
 }
 
-.dom-group__header:focus-visible {
+.club-group__header h2 {
+	margin: 0;
+	font-size: 2rem;
+	font-weight: 700;
+	color: #2a2e33;
+}
+
+.club-group__header:focus-visible {
 	outline: 2px solid #2f80d0;
 	outline-offset: -2px;
 }
 
-.dom-group__header h2 {
-	margin: 0;
-	font-size: 3.3rem;
-	font-weight: 700;
-	color: #2d3136;
-}
-
 .chevron {
-	font-size: 3rem;
+	font-size: 2.8rem;
 	line-height: 1;
-	color: #2d3136;
+	font-weight: 700;
+	color: #2a2e33;
 }
 
-.dom-table {
+.club-group__content {
+	overflow-x: auto;
+	background: #fff;
+}
+
+.club-table {
 	width: 100%;
+	min-width: 1000px;
 	border-collapse: collapse;
-	font-size: 1.45rem;
+	font-size: 1.4rem;
+	background: #fff;
 }
 
-.dom-table th,
-.dom-table td {
+.club-table thead th {
 	padding: 12px 14px;
-	border-top: 1px solid #dfe2e7;
 	text-align: left;
-	color: #2f3337;
-	vertical-align: middle;
-}
-
-.dom-table th {
-	background: #ffffff;
+	background: #f1f3f5;
+	color: #30343a;
+	font-size: 1.6rem;
 	font-weight: 500;
+	border-top: 1px solid #d9dde2;
 }
 
-.dom-table a {
-	color: #0c4f97;
-	font-weight: 600;
-}
-
-.dom-table button {
-	border: 0;
-	background: #2f80d0;
-	color: #fff;
-	border-radius: 8px;
-	padding: 7px 16px;
-	min-width: 90px;
-	font-size: 1.35rem;
-}
-
-.photo-thumb {
-	width: 42px;
-	height: 42px;
-	border: 1px solid #c8ccd4;
-	border-radius: 2px;
-	background: linear-gradient(180deg, #0a4f95, #7daed8);
-}
-
-.row-action {
-	background: #ffc58f;
-}
-
-.row-warn {
-	background: #ffffbd;
-}
-
-.row-complete {
-	background: #cdf3cd;
-}
-
-.status-modal-backdrop {
-	position: fixed;
-	inset: 0;
-	background: rgba(0, 0, 0, 0.45);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	z-index: 1500;
-}
-
-.status-modal {
-	width: min(92vw, 480px);
-	background: #ffffff;
-	border-radius: 10px;
-	padding: 20px;
-	box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
-}
-
-.status-modal--new {
-	width: min(95vw, 620px);
-	max-height: 90vh;
-	overflow: auto;
-	position: relative;
-	border-radius: 2px;
-	padding: 10px 10px 12px;
-}
-
-.status-modal--action {
-	width: min(96vw, 760px);
-	max-height: 92vh;
-	overflow: auto;
-	padding: 18px 24px 16px;
-	border-radius: 6px;
-}
-
-.status-modal__x {
-	position: absolute;
-	right: 8px;
-	top: 6px;
-	border: 0;
-	background: transparent;
-	color: #9ca3ad;
-	font-size: 2.4rem;
-	line-height: 1;
-	cursor: pointer;
-}
-
-.status-modal__prompt {
-	margin: 0 0 8px;
-	font-size: 1.7rem;
-	color: #3a3f45;
-}
-
-.status-modal__action-title {
-	margin: 0 0 14px;
-	font-size: 3.2rem;
-	line-height: 1.2;
-	font-weight: 700;
-	color: #33383e;
-}
-
-.status-modal__request-row {
-	display: grid;
-	grid-template-columns: 200px 1fr;
-	gap: 8px;
-	margin-bottom: 8px;
-}
-
-.status-modal__request-box {
-	border: 1px solid #9ea7b2;
-	border-radius: 4px;
-	padding: 4px 10px;
+.club-table tbody td {
+	padding: 10px 12px;
+	color: #2f3338;
 	background: #fff;
+	border-top: 1px solid #e3e6ea;
+	vertical-align: middle;
+	white-space: nowrap;
 }
 
-.status-modal__request-label {
-	font-size: 1rem;
-	color: #6a717a;
-	line-height: 1.2;
-}
-
-.status-modal__request-value {
-	font-size: 1.2rem;
-	color: #2f3337;
-	line-height: 1.2;
-}
-
-.status-modal__action-controls {
-	margin-bottom: 8px;
-}
-
-.status-modal__title {
-	margin: 0 0 8px;
-	font-size: 1.9rem;
-	line-height: 1.25;
-	color: #0015ff;
-}
-
-.status-modal__meta {
-	margin: 0 0 4px;
-	font-size: 1.5rem;
-	color: #23282e;
-}
-
-.status-modal__section {
-	border-top: 1px solid #d8dde5;
-	margin-top: 10px;
-	padding-top: 10px;
-	font-size: 1.4rem;
-	color: #23282e;
-}
-
-.status-modal__qty {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	margin-bottom: 8px;
-}
-
-.status-modal__qty input {
-	width: 52px;
-	height: 26px;
-	padding: 2px 4px;
-	border: 1px solid #aeb6c2;
-	border-radius: 6px;
-	font-size: 1.3rem;
-}
-
-.status-modal__radio {
-	display: block;
-	margin-bottom: 6px;
-	font-size: 1.4rem;
-}
-
-.status-modal__radio input {
-	margin-right: 6px;
-}
-
-.status-modal__section-title {
-	margin: 0 0 8px;
-	font-size: 3rem;
-	color: #2f3337;
-}
-
-.status-modal__history-grid {
-	display: grid;
-	grid-template-columns: repeat(5, minmax(0, 1fr));
-	column-gap: 8px;
-	row-gap: 4px;
-	font-size: 1.1rem;
-	margin-bottom: 2px;
-}
-
-.status-modal__history-grid--head {
-	font-weight: 700;
-	margin-bottom: 2px;
-}
-
-.status-modal__history-grid--note {
-	grid-template-columns: 1fr 1.2fr 3fr;
-}
-
-.status-modal textarea {
+.club-table input {
 	width: 100%;
+	height: 32px;
+	padding: 0 10px;
+	border: 1px solid #c8cdd4;
+	border-radius: 4px;
+	font-size: 1.5rem;
 	box-sizing: border-box;
-	border: 1px solid #9ea7b2;
-	font-size: 1.1rem;
-	padding: 8px;
-	resize: vertical;
-}
-
-.status-modal__notes-block {
-	padding-top: 0;
-	border-top: 0;
-	position: relative;
-}
-
-.status-modal__note-count {
-	text-align: right;
-	font-size: 1rem;
-	color: #8a9098;
-	margin-top: 4px;
-}
-
-.status-modal__send-back {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	font-size: 1.3rem;
-	color: #2f3337;
-	margin: 10px 0;
-}
-
-.status-modal__send-back input {
-	width: 18px;
-	height: 18px;
-	accent-color: #f2b400;
-}
-
-.status-modal__actions--action {
-	justify-content: flex-end;
-	gap: 10px;
-	margin-top: 6px;
-}
-
-.status-modal__actions--action .btn-close {
-	min-width: 140px;
-	border: 0;
-	background: #b9c0d4;
-	color: #0e2f75;
-	padding: 8px 16px;
-	border-radius: 8px;
-	font-size: 1.15rem;
-	cursor: pointer;
-}
-
-.status-modal__actions--action .btn-save {
-	min-width: 140px;
-	border: 0;
-	background: #2f80d0;
-	color: #fff;
-	padding: 8px 16px;
-	border-radius: 8px;
-	font-size: 1.15rem;
-	cursor: pointer;
-}
-
-.status-modal__actions--new {
-	margin-top: 10px;
-	gap: 8px;
-}
-
-.status-modal__actions--new .btn-close {
-	border: 1px solid #b8bec8;
 	background: #fff;
-	color: #222;
-	padding: 6px 12px;
-	border-radius: 5px;
-	font-size: 1.4rem;
-	cursor: pointer;
+	color: #2c3137;
 }
 
-.status-modal__actions--new .btn-save {
+.input-with-check {
+	display: grid;
+	grid-template-columns: 1fr 38px;
+	gap: 0;
+	align-items: stretch;
+}
+
+.btn-verify {
 	border: 0;
-	background: #286fac;
+	background: #56b28b;
 	color: #fff;
-	padding: 6px 12px;
-	border-radius: 5px;
-	font-size: 1.4rem;
+	font-size: 1.8rem;
+	border-radius: 0 4px 4px 0;
 	cursor: pointer;
 }
 
-.status-modal h3 {
-	margin: 0 0 12px;
-	font-size: 2rem;
-	color: #2d3136;
-}
-
-.status-modal p {
-	margin: 0 0 8px;
-	font-size: 1.45rem;
-	color: #2f3337;
-}
-
-.status-modal__actions {
-	display: flex;
-	justify-content: flex-end;
-	margin-top: 16px;
-}
-
-.status-modal__actions button {
+.btn-fulfilled {
 	border: 0;
-	border-radius: 8px;
+	border-radius: 6px;
+	padding: 7px 16px;
+	min-width: 112px;
 	background: #2f80d0;
 	color: #fff;
-	padding: 8px 16px;
-	font-size: 1.35rem;
+	font-size: 1.5rem;
 	cursor: pointer;
+}
+
+@media (max-width: 900px) {
+	.club-table {
+		min-width: 860px;
+	}
+
+	.club-group__header h2 {
+		font-size: 1.7rem;
+	}
 }
